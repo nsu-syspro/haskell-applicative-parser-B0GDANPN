@@ -6,7 +6,8 @@ module ParserCombinators where
 import Parser
 
 import Control.Applicative
-
+import Control.Monad ( void, replicateM )
+import Data.Char (isSpace)
 -- | Parses single character
 --
 -- Usage example:
@@ -17,7 +18,7 @@ import Control.Applicative
 -- Failed [Position 0 (Unexpected 'a')]
 --
 char :: Char -> Parser Char
-char = error "TODO: define char"
+char expected = satisfy (== expected)
 
 -- | Parses given string
 --
@@ -29,7 +30,8 @@ char = error "TODO: define char"
 -- Failed [Position 0 (Unexpected 'a')]
 --
 string :: String -> Parser String
-string = error "TODO: define string"
+string = traverse char
+
 
 -- | Skips zero or more space characters
 --
@@ -43,7 +45,8 @@ string = error "TODO: define string"
 -- Parsed "bar" (Position 3 "")
 --
 spaces :: Parser ()
-spaces = error "TODO: define spaces"
+spaces = void (many (satisfy isSpace))
+
 
 -- | Tries to consecutively apply each of given list of parsers until one succeeds.
 -- Returns the *first* succeeding parser as result or 'empty' if all of them failed.
@@ -58,7 +61,19 @@ spaces = error "TODO: define spaces"
 -- Parsed "ba" (Position 2 "r")
 --
 choice :: (Foldable t, Alternative f) => t (f a) -> f a
-choice = error "TODO: define choice"
+choice = foldl (<|>) empty
+
+
+between :: Parser open -> Parser a -> Parser close -> Parser a
+between popen p pclose = popen *> p <* pclose
+
+optional :: Parser a -> Parser (Maybe a)
+optional p = (Just <$> p) <|> pure Nothing
+
+count :: Int -> Parser a -> Parser [a]
+count n p
+  | n <= 0    = pure []
+  | otherwise = replicateM n p
 
 -- Discover and implement more useful parser combinators below
 --
