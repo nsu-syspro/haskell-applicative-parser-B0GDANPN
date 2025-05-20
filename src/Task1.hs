@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 -- The above pragma enables all warnings
 
 module Task1 where
 
 import Parser
-
+import Control.Applicative (some, (<|>))
+import Data.Char (isDigit)
 -- | Parses natural number (including zero)
 --
 -- Usage example:
@@ -21,7 +23,7 @@ import Parser
 -- Parsed 123 (Input 3 "abc")
 --
 nat :: Parser Integer
-nat = error "TODO: define nat"
+nat = read <$> some (satisfy isDigit)
 
 -- | Parses integer number
 --
@@ -39,4 +41,5 @@ nat = error "TODO: define nat"
 -- Parsed 123 (Input 3 "abc")
 --
 int :: Parser Integer
-int = error "TODO: define int"
+int =  (negate <$> (satisfy (== '-') *> nat))
+   <|> nat
